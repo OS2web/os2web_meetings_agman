@@ -1,0 +1,83 @@
+id: os2web_meetings_agman_import
+migration_tags:
+  - os2web_meetings
+label: 'Meeting import'
+migration_group: os2web_meetings
+source:
+  plugin: os2web_meetings_directory_agman
+  data_fetcher_plugin: file
+  data_parser_plugin: os2web_meetings_simple_xml_array
+  pattern: '/.*\.(xml)/i'
+  item_selector: /Publication
+  track_changes: true
+  data_parser_plugin_simple_array: true
+  fields:
+    - name: agenda_id
+      label: Agenda ID
+      selector: "Agendas/Agenda/@ID"
+    - name: agenda_type
+      label: Agenda type
+      selector: "PublicationTypeAsValue"
+    - name: meeting_id
+      label: Meeting ID
+      selector: "Agendas/Agenda/Meeting/@ID"
+    - name: title
+      label: Meeting title
+      selector: "Agendas/Agenda/Committee/Name"
+    - name: meeting_start_date
+      label: Meeting start date
+      selector: "Agendas/Agenda/Meeting/When"
+    - name: meeting_end_date
+      label: Meeting end date
+      selector: "Agendas/Agenda/Meeting/Until"
+    - name: committee_id
+      label: Committee ID
+      selector: "Agendas/Agenda/Committee/@ID"
+    - name: committee_name
+      label: Meeting title
+      selector: "Agendas/Agenda/Committee/Name"
+    - name: location_name
+      label: Location name
+      selector: "Agendas/Agenda/Meeting/Where"
+    - name: bullet_points
+      label: Bullet points
+      selector: "/Publication/Agendas/Agenda/Items"
+    - name: participants
+      label: Participants
+      selector: "Agendas/Agenda/Meeting/Members/MeetingMember"
+    - name: participants_canceled
+      label: Canceled Participants
+      selector: "Agendas/Agenda/Meeting/Members/MeetingMember"  
+      
+  ids:
+    agenda_id:
+      type: string
+process:
+  type:
+    plugin: default_value
+    default_value: os2web_meetings_meeting
+  title: title
+  field_os2web_m_esdh_id: agenda_id
+  field_os2web_m_meet_id: meeting_id
+  field_os2web_m_type: agenda_type
+  field_os2web_m_start_date:
+    plugin: format_date
+    from_format: 'U'
+    to_format: 'Y-m-d\TH:i:s'
+    source: meeting_start_date
+  field_os2web_m_end_date:
+    plugin: format_date
+    from_format: 'U'
+    to_format: 'Y-m-d\TH:i:s'
+    source: meeting_end_date
+  field_os2web_m_doc: agenda_document
+  field_os2web_m_committee: committee_target
+  field_os2web_m_location: location_target
+  field_os2web_m_bps: bullet_points_targets
+  field_os2web_m_partic: participants
+  field_os2web_m_partic_cancel: cancel_participants
+destination:
+  plugin: entity:node
+migration_dependencies: 
+  required: {  }
+  optional: {  }

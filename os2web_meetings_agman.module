@@ -1,0 +1,27 @@
+<?php
+
+/**
+ * @file
+ * Primary module hooks for os2web_meetings module.
+ */
+
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\os2web_meetings\Form\SettingsForm;
+
+/**
+ * Implements hook_form_alter().
+ */
+function os2web_meetings_agman_form_os2web_meetings_settings_alter(&$form, FormStateInterface $form_state, $form_id) {
+  $form['agman_meetings_import_details'] = [
+    '#type' => 'details',
+    '#title' => t('AGMAN Import settings'),
+  ];
+
+  $form['agman_meetings_import_details']['agman_meetings_manifest_path'] = [
+    '#type' => 'textfield',
+    '#title' => t('AGMAN Meetings manifests path'),
+    '#description' => t('Example: public://agman'),
+    '#default_value' => \Drupal::config(SettingsForm::$configName)
+      ->get('agman_meetings_manifest_path'),
+  ];
+}
