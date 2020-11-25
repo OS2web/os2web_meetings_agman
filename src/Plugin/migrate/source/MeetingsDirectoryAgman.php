@@ -247,7 +247,6 @@ class MeetingsDirectoryAgman extends MeetingsDirectory {
         ];       
       }
     }
-var_dump($canonical_enclosures);
     return $canonical_enclosures;
   }
 
