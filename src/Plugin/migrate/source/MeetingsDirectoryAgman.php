@@ -236,7 +236,7 @@ class MeetingsDirectoryAgman extends MeetingsDirectory {
       if (is_array($enclosure)) {
         $id = $enclosure['@attributes']['ID'];
         $title = $enclosure['FileName'];
-        $access = filter_var((string) $enclosure['IsProtected'], FILTER_VALIDATE_BOOLEAN);
+        $access = !filter_var((string) $enclosure['IsProtected'], FILTER_VALIDATE_BOOLEAN);
         $uri = $enclosure['EnclosureOutputUri'];
 
         $canonical_enclosures[] = [
@@ -247,7 +247,7 @@ class MeetingsDirectoryAgman extends MeetingsDirectory {
         ];       
       }
     }
-
+var_dump($canonical_enclosures);
     return $canonical_enclosures;
   }
 

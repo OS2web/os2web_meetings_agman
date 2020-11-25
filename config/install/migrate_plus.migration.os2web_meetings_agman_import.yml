@@ -1,7 +1,7 @@
 id: os2web_meetings_agman_import
 migration_tags:
   - os2web_meetings
-label: 'Meeting import'
+label: 'Meeting import (AGMAN)'
 migration_group: os2web_meetings
 source:
   plugin: os2web_meetings_directory_agman
