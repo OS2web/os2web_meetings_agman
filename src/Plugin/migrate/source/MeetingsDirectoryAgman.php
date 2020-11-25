@@ -121,7 +121,6 @@ class MeetingsDirectoryAgman extends MeetingsDirectory {
       $id = $bullet_point['@attributes']['ID'];
       $bpNumber = $bullet_point['@attributes']['Nummer'];
       $title = $bullet_point['Caption'];
-      var_dump($bullet_point['IsPublic']);
       $access = filter_var($bullet_point['IsPublic'], FILTER_VALIDATE_BOOLEAN);
 
       // Getting attachments (text).
@@ -234,7 +233,7 @@ class MeetingsDirectoryAgman extends MeetingsDirectory {
     $canonical_enclosures = [];
 
     foreach ($source_enclosures as $enclosure) {
-      if (!empty($enclosure)) {
+      if (is_array($enclosure)) {
         $id = $enclosure['@attributes']['ID'];
         $title = $enclosure['FileName'];
         $access = filter_var((string) $enclosure['IsProtected'], FILTER_VALIDATE_BOOLEAN);
@@ -299,7 +298,7 @@ class MeetingsDirectoryAgman extends MeetingsDirectory {
   }
 
   /**
-0   * {@inheritdoc}
+   * {@inheritdoc}
    */
   public function postImport(MigrateImportEvent $event) {
     parent::postImport($event);
@@ -345,5 +344,10 @@ class MeetingsDirectoryAgman extends MeetingsDirectory {
       }
     }
   }
-
+   /**
+   * {@inheritdoc}
+   */
+  public function convertAgendaIdToCanonical(array $source) {
+    return $source['agenda_id'];
+  }
 }
