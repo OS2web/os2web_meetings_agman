@@ -49,7 +49,7 @@ class MeetingsDirectoryAgman extends MeetingsDirectory {
     }
     else {
       return MeetingsDirectory::AGENDA_TYPE_REFERAT;
-    } 
+    }
   }
 
   /**
@@ -127,11 +127,6 @@ class MeetingsDirectoryAgman extends MeetingsDirectory {
       $source_attachments = $bullet_point;
       $canonical_attachments = [];
       if (is_array($source_attachments)) {
-        // Handling single items.
-       /* if (array_key_exists('@attributes', $source_attachments)) {
-          $source_attachments = [$source_attachments];
-        }*/
-
         $canonical_attachments = $this->convertAttachmentsToCanonical($source_attachments, $access);
       }
 
@@ -142,7 +137,10 @@ class MeetingsDirectoryAgman extends MeetingsDirectory {
       }
       $canonical_enclosures = [];
       if (is_array($source_enclosures)) {
-
+       // Handling single items.
+        if (array_key_exists('@attributes', $source_enclosures)) {
+          $source_enclosures = [$source_enclosures];
+        }
         $canonical_enclosures = $this->convertEnclosuresToCanonical($source_enclosures);
       }
 
@@ -176,10 +174,10 @@ class MeetingsDirectoryAgman extends MeetingsDirectory {
           'body' => $body,
           'access' => $access,
         ];
-      }      
+      }
     }
     if (!empty($source_attachments['ItemHistory'])) {
-      $source_attachments_history = $source_attachments['ItemHistory']; 
+      $source_attachments_history = $source_attachments['ItemHistory'];
       $title = t('Beslutningshistorik');
       $body = '';
       foreach ($source_attachments_history as $history) {
@@ -221,18 +219,18 @@ class MeetingsDirectoryAgman extends MeetingsDirectory {
         }
         else {
          $canonical_participants['participants_canceled'][] = (string) $participant['Name'] . " - " . $participant['ParticipationStatusAsText'] . $participation_note;
-        }        
+        }
     }
     return $canonical_participants;
-      
+
   }
   /**
    * {@inheritdoc}
    */
   public function convertEnclosuresToCanonical(array $source_enclosures) {
     $canonical_enclosures = [];
-
     foreach ($source_enclosures as $enclosure) {
+
       if (is_array($enclosure)) {
         $id = $enclosure['@attributes']['ID'];
         $title = $enclosure['FileName'];
@@ -244,7 +242,7 @@ class MeetingsDirectoryAgman extends MeetingsDirectory {
           'title' => $title,
           'uri' => $uri,
           'access' => $access,
-        ];       
+        ];
       }
     }
     return $canonical_enclosures;
