@@ -117,9 +117,9 @@ class MeetingsDirectoryAgman extends MeetingsDirectory {
     $canonical_bullet_points = [];
     $source_bullet_points = array_pop($source['bullet_points']);
 
-    foreach ($source_bullet_points['Item'] as $bullet_point) {
+    foreach ($source_bullet_points['Item'] as $key => $bullet_point) {
       $id = $bullet_point['@attributes']['ID'];
-      $bpNumber = $bullet_point['@attributes']['Nummer'];
+      $bpNumber = isset($bullet_point['@attributes']['Nummer']) ? $bullet_point['@attributes']['Nummer'] : $key + 1;
       $title = $bullet_point['Caption'];
       $access = filter_var($bullet_point['IsPublic'], FILTER_VALIDATE_BOOLEAN);
 
