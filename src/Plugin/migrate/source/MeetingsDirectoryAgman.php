@@ -80,7 +80,17 @@ class MeetingsDirectoryAgman extends MeetingsDirectory {
    * {@inheritdoc}
    */
   public function convertAgendaDocumentToCanonical(array $source) {
-    return [];
+
+    $title = 'Samlet document';
+    // There is no reference to HTML file, but we expect it to be in the
+    // directory with the following name.
+    $uri = 'Publication' . $source['meeting_id'] . '.pdf';
+
+    return [
+      'title' => $title,
+      'uri' => $uri,
+    ];
+
   }
 
   /**
