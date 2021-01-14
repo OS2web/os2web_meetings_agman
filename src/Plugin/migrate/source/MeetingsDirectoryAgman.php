@@ -243,7 +243,7 @@ class MeetingsDirectoryAgman extends MeetingsDirectory {
 
       if (is_array($enclosure)) {
         $id = $enclosure['@attributes']['ID'];
-        $title = $enclosure['FileName'];
+        $title = $enclosure['Name'];
         $access = !filter_var((string) $enclosure['IsProtected'], FILTER_VALIDATE_BOOLEAN);
         $uri = $enclosure['EnclosureOutputUri'];
 
