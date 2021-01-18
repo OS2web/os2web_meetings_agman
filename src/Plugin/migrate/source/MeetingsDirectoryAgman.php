@@ -172,7 +172,15 @@ class MeetingsDirectoryAgman extends MeetingsDirectory {
    */
   public function convertAttachmentsToCanonical(array $source_attachments, $access = TRUE) {
     $canonical_attachments = [];
+    $closed_bpa_titles = \Drupal::config(SettingsForm::$configName)->get('agman_meetings_import_closed_bpa_titles');
+    $closed_bpa_titles = !empty($closed_bpa_titles) ? explode(',', $closed_bpa_titles) : array();
+    $closed_bpa_titles = array_map('trim', $closed_bpa_titles);
+    $closed_bpa_titles = array_map('strtolower', $closed_bpa_titles);
+
     foreach ($source_attachments['Fields']['ItemField'] as $attachmnet) {
+      if (!$access && !empty($closed_bpa_titles) && !in_array(strtolower($attachmnet['Caption']), $closed_bpa_titles)) {
+        continue;
+      }
       // Using title as ID, as we don't have a real one.
       if ($attachmnet['HasContent'] === 'True') {
         $id = $attachmnet['@attributes']['ID'];
@@ -186,6 +194,8 @@ class MeetingsDirectoryAgman extends MeetingsDirectory {
         ];
       }
     }
+
+
     if (!empty($source_attachments['ItemHistory'])) {
       $source_attachments_history = $source_attachments['ItemHistory'];
       $title = t('Beslutningshistorik');
@@ -246,7 +256,10 @@ class MeetingsDirectoryAgman extends MeetingsDirectory {
         $title = $enclosure['Name'];
         $access = !filter_var((string) $enclosure['IsProtected'], FILTER_VALIDATE_BOOLEAN);
         $uri = $enclosure['EnclosureOutputUri'];
-
+        $import_closed_bilags = \Drupal::config(SettingsForm::$configName)->get('agman_meetings_import_closed_bilags');
+        if (!$import_closed_bilags && $access === FALSE) {
+          continue;
+        }
         $canonical_enclosures[] = [
           'id' => $id,
           'title' => $title,

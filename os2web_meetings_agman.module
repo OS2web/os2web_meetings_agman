@@ -24,4 +24,18 @@ function os2web_meetings_agman_form_os2web_meetings_settings_alter(&$form, FormS
     '#default_value' => \Drupal::config(SettingsForm::$configName)
       ->get('agman_meetings_manifest_path'),
   ];
+  $form['agman_meetings_import_details']['agman_meetings_import_closed_bpa_titles'] = [
+    '#type' => 'textfield',
+    '#title' => t('Bullet point attachments titles, whose will be imported in closed bullet point'),
+    '#description' => t('Comma-separeted list of bullet point attachments titles, whose will be imported in closed bullet point. For example "indstilling,beslutning"'),
+    '#default_value' => \Drupal::config(SettingsForm::$configName)
+      ->get('agman_meetings_import_closed_bpa_titles')
+  ];
+  $form['agman_meetings_import_details']['agman_meetings_import_closed_bilags'] = [
+    '#type' => 'checkbox',
+    '#title' => t('Import closed bilags'),
+    '#description' => t('This decides if closed bilags will be imported'),
+    '#default_value' => \Drupal::config(SettingsForm::$configName)
+      ->get('agman_meetings_import_closed_bilags')
+  ];
 }
