@@ -177,15 +177,17 @@ class MeetingsDirectoryAgman extends MeetingsDirectory {
     $closed_bpa_titles = array_map('trim', $closed_bpa_titles);
     $closed_bpa_titles = array_map('strtolower', $closed_bpa_titles);
 
-    foreach ($source_attachments['Fields']['ItemField'] as $attachmnet) {
-      if (!$access && !empty($closed_bpa_titles) && !in_array(strtolower($attachmnet['Caption']), $closed_bpa_titles)) {
+    foreach ($source_attachments['Fields']['ItemField'] as $attachment) {
+      $attachment['Caption'] = (string) $attachment['Caption'];
+
+      if (!$access && !empty($closed_bpa_titles) && !in_array(strtolower($attachment['Caption']), $closed_bpa_titles)) {
         continue;
       }
       // Using title as ID, as we don't have a real one.
-      if ($attachmnet['HasContent'] === 'True') {
-        $id = $attachmnet['@attributes']['ID'];
-        $title = $attachmnet['Caption'];
-        $body = (string) $attachmnet['Content'];
+      if ($attachment['HasContent'] === 'True') {
+        $id = $attachment['@attributes']['ID'];
+        $title = $attachment['Caption'];
+        $body = (string) $attachment['Content'];
         $canonical_attachments[] = [
           'id' => $id,
           'title' => $title,
