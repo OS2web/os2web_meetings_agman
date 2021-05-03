@@ -151,6 +151,14 @@ class MeetingsDirectoryAgman extends MeetingsDirectory {
         if (array_key_exists('@attributes', $source_enclosures)) {
           $source_enclosures = [$source_enclosures];
         }
+
+        // If access = FALSE, force all enclosures to be closed.
+        if (!$access){
+          foreach ($source_enclosures as &$enclosure) {
+            $enclosure['IsProtected'] = TRUE;
+          }
+        }
+
         $canonical_enclosures = $this->convertEnclosuresToCanonical($source_enclosures);
       }
 
@@ -183,8 +191,9 @@ class MeetingsDirectoryAgman extends MeetingsDirectory {
       if (!$access && !empty($closed_bpa_titles) && !in_array(strtolower($attachment['Caption']), $closed_bpa_titles)) {
         continue;
       }
+
       // Using title as ID, as we don't have a real one.
-      if ($attachment['HasContent'] === 'True') {
+      if ($attachment['HasContent'] === 'True' && !empty($attachment['Content'])) {
         $id = $attachment['@attributes']['ID'];
         $title = $attachment['Caption'];
         $body = (string) $attachment['Content'];
