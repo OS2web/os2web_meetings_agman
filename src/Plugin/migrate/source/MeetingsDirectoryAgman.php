@@ -206,13 +206,18 @@ class MeetingsDirectoryAgman extends MeetingsDirectory {
       }
     }
 
-
     if (!empty($source_attachments['ItemHistory'])) {
       $source_attachments_history = $source_attachments['ItemHistory'];
       $title = t('Beslutningshistorik');
       $body = '';
+      $id = '';
       foreach ($source_attachments_history as $history) {
-        if ($history['HasContent'] === 'True') {
+        if (isset($history['HasContent']) && $history['HasContent'] === 'True') {
+          // It's a composed field, use the first ID it can find.
+          if (empty($id)) {
+            $id = $history['@attributes']['ID'];
+          }
+
           $body .= t('@decision truffet af @comittee d. @date ', array(
             '@decision' => (string) $history['Caption'],
             '@comittee' => (string) $history['MeetingDetails']['CommitteeName'],
@@ -221,11 +226,15 @@ class MeetingsDirectoryAgman extends MeetingsDirectory {
           $body .= '<br>' . strip_tags((string) $history['Content']) . '<br>';
         }
       }
-      $canonical_attachments[] = [
+
+      if (!empty($id) && !empty($body)) {
+        $canonical_attachments[] = [
+          'id' => $id,
           'title' => $title,
           'body' => $body,
           'access' => TRUE,
         ];
+      }
     }
     return $canonical_attachments;
   }
