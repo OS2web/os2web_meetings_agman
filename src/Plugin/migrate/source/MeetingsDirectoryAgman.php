@@ -207,35 +207,41 @@ class MeetingsDirectoryAgman extends MeetingsDirectory {
     }
 
     if (!empty($source_attachments['ItemHistory'])) {
-      $source_attachments_history = $source_attachments['ItemHistory'];
-      $title = t('Beslutningshistorik');
-      $body = '';
-      $id = '';
-      foreach ($source_attachments_history as $history) {
-        if (isset($history['HasContent']) && $history['HasContent'] === 'True') {
-          // It's a composed field, use the first ID it can find.
-          if (empty($id)) {
-            $id = $history['@attributes']['ID'];
-          }
+      $decisionHistoryTitle = 'Beslutningshistorik';
 
-          $body .= t('@decision truffet af @comittee d. @date ', array(
-            '@decision' => (string) $history['Caption'],
-            '@comittee' => (string) $history['MeetingDetails']['CommitteeName'],
-            '@date'     => date('d-m-Y', strtotime((string) $history['MeetingDetails']['MeetingDueDate'])),
-          ));
-          $body .= '<br>' . strip_tags((string) $history['Content']) . '<br>';
+      // Allowing Beslutningshistorik only if the access is TRUE, or it's added
+      // to the whitelist.
+      if ($access || (!empty($closed_bpa_titles) && in_array(strtolower($decisionHistoryTitle), $closed_bpa_titles))) {
+        $source_attachments_history = $source_attachments['ItemHistory'];
+        $body = '';
+        $id = '';
+        foreach ($source_attachments_history as $history) {
+          if (isset($history['HasContent']) && $history['HasContent'] === 'True') {
+            // It's a composed field, use the first ID it can find.
+            if (empty($id)) {
+              $id = $history['@attributes']['ID'];
+            }
+
+            $body .= t('@decision truffet af @comittee d. @date ', array(
+              '@decision' => (string) $history['Caption'],
+              '@comittee' => (string) $history['MeetingDetails']['CommitteeName'],
+              '@date'     => date('d-m-Y', strtotime((string) $history['MeetingDetails']['MeetingDueDate'])),
+            ));
+            $body .= '<br>' . strip_tags((string) $history['Content']) . '<br>';
+          }
+        }
+
+        if (!empty($id) && !empty($body)) {
+          $canonical_attachments[] = [
+            'id' => $id,
+            'title' => $decisionHistoryTitle,
+            'body' => $body,
+            'access' => TRUE,
+          ];
         }
       }
-
-      if (!empty($id) && !empty($body)) {
-        $canonical_attachments[] = [
-          'id' => $id,
-          'title' => $title,
-          'body' => $body,
-          'access' => TRUE,
-        ];
-      }
     }
+
     return $canonical_attachments;
   }
 
