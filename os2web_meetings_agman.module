@@ -38,4 +38,11 @@ function os2web_meetings_agman_form_os2web_meetings_settings_alter(&$form, FormS
     '#default_value' => \Drupal::config(SettingsForm::$configName)
       ->get('agman_meetings_import_closed_bilags')
   ];
+  $form['agman_meetings_import_details']['agman_meetings_import_empty_bpa_title'] = [
+    '#type' => 'textfield',
+    '#title' => t('Empty attachment title'),
+    '#description' => t('If attachment title is empty, this value will be used'),
+    '#default_value' => \Drupal::config(SettingsForm::$configName)
+      ->get('agman_meetings_import_empty_bpa_title')
+  ];
 }

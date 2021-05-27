@@ -180,13 +180,16 @@ class MeetingsDirectoryAgman extends MeetingsDirectory {
    */
   public function convertAttachmentsToCanonical(array $source_attachments, $access = TRUE) {
     $canonical_attachments = [];
+    
     $closed_bpa_titles = \Drupal::config(SettingsForm::$configName)->get('agman_meetings_import_closed_bpa_titles');
     $closed_bpa_titles = !empty($closed_bpa_titles) ? explode(',', $closed_bpa_titles) : array();
     $closed_bpa_titles = array_map('trim', $closed_bpa_titles);
     $closed_bpa_titles = array_map('strtolower', $closed_bpa_titles);
 
+    $empty_bpa_title = \Drupal::config(SettingsForm::$configName)->get('agman_meetings_import_empty_bpa_title');
+
     foreach ($source_attachments['Fields']['ItemField'] as $attachment) {
-      $attachment['Caption'] = (string) $attachment['Caption'];
+      $attachment['Caption'] = is_array($attachment['Caption']) ? $empty_bpa_title : $attachment['Caption'];
 
       if (!$access && !empty($closed_bpa_titles) && !in_array(strtolower($attachment['Caption']), $closed_bpa_titles)) {
         continue;
@@ -197,6 +200,7 @@ class MeetingsDirectoryAgman extends MeetingsDirectory {
         $id = $attachment['@attributes']['ID'];
         $title = $attachment['Caption'];
         $body = (string) $attachment['Content'];
+
         $canonical_attachments[] = [
           'id' => $id,
           'title' => $title,

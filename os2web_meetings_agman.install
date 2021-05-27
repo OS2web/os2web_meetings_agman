@@ -1,0 +1,19 @@
+<?php
+
+/**
+ * @file
+ * Install, uninstall and update hooks for page builder module.
+ */
+
+use Drupal\os2web_meetings\Form\SettingsForm;
+
+/**
+ * Setting empty BPA title as Beskrivelse.
+ */
+function os2web_meetings_agman_update_8001() {
+  $config = \Drupal::service('config.factory')->getEditable(SettingsForm::$configName);
+
+  // Renaming config value.
+  $config->set('agman_meetings_import_empty_bpa_title', 'Beskrivelse');
+  $config->save();
+}
