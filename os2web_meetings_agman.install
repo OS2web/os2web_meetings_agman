@@ -6,6 +6,7 @@
  */
 
 use Drupal\os2web_meetings\Form\SettingsForm;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * Setting empty BPA title as Beskrivelse.
@@ -16,4 +17,16 @@ function os2web_meetings_agman_update_8001() {
   // Renaming config value.
   $config->set('agman_meetings_import_empty_bpa_title', 'Beskrivelse');
   $config->save();
+}
+
+/**
+ * Updating migration.
+ */
+function os2web_meetings_agman_update_8002() {
+  $config_name = 'migrate_plus.migration.os2web_meetings_agman_import';
+
+  $path = drupal_get_path('module', 'os2web_meetings_agman');
+  /** @var \Drupal\Core\Config\StorageInterface $active_storage */
+  $active_storage = \Drupal::service('config.storage');
+  $active_storage->write($config_name, Yaml::parse(file_get_contents($path . '/config/install/' . $config_name . '.yml')));
 }
