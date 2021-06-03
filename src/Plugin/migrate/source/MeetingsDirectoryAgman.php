@@ -125,7 +125,15 @@ class MeetingsDirectoryAgman extends MeetingsDirectory {
    */
   public function convertBulletPointsToCanonical(array $source) {
     $canonical_bullet_points = [];
+
     $source_bullet_points = array_pop($source['bullet_points']);
+
+    // Dealing with one BP meeting.
+    if (array_key_exists('Caption', $source_bullet_points['Item'])) {
+      $source_bullet_points['Item'] = [
+        0 => $source_bullet_points['Item']
+      ];
+    }
 
     foreach ($source_bullet_points['Item'] as $key => $bullet_point) {
       $id = $bullet_point['@attributes']['ID'];
@@ -188,25 +196,27 @@ class MeetingsDirectoryAgman extends MeetingsDirectory {
 
     $empty_bpa_title = \Drupal::config(SettingsForm::$configName)->get('agman_meetings_import_empty_bpa_title');
 
-    foreach ($source_attachments['Fields']['ItemField'] as $attachment) {
-      $attachment['Caption'] = is_array($attachment['Caption']) ? $empty_bpa_title : $attachment['Caption'];
+    if (isset($source_attachments['Fields']['ItemField'])) {
+      foreach ($source_attachments['Fields']['ItemField'] as $attachment) {
+        $attachment['Caption'] = is_array($attachment['Caption']) ? $empty_bpa_title : $attachment['Caption'];
 
-      if (!$access && !empty($closed_bpa_titles) && !in_array(strtolower($attachment['Caption']), $closed_bpa_titles)) {
-        continue;
-      }
+        if (!$access && !empty($closed_bpa_titles) && !in_array(strtolower($attachment['Caption']), $closed_bpa_titles)) {
+          continue;
+        }
 
-      // Using title as ID, as we don't have a real one.
-      if ($attachment['HasContent'] === 'True' && !empty($attachment['Content'])) {
-        $id = $attachment['@attributes']['ID'];
-        $title = $attachment['Caption'];
-        $body = (string) $attachment['Content'];
+        // Using title as ID, as we don't have a real one.
+        if ($attachment['HasContent'] === 'True' && !empty($attachment['Content'])) {
+          $id = $attachment['@attributes']['ID'];
+          $title = $attachment['Caption'];
+          $body = (string) $attachment['Content'];
 
-        $canonical_attachments[] = [
-          'id' => $id,
-          'title' => $title,
-          'body' => $body,
-          'access' => $access,
-        ];
+          $canonical_attachments[] = [
+            'id' => $id,
+            'title' => $title,
+            'body' => $body,
+            'access' => $access,
+          ];
+        }
       }
     }
 
