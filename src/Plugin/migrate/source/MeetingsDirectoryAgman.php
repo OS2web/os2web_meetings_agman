@@ -295,7 +295,7 @@ class MeetingsDirectoryAgman extends MeetingsDirectory {
         $id = $enclosure['@attributes']['ID'];
         $title = $enclosure['Name'];
         $access = !filter_var((string) $enclosure['IsProtected'], FILTER_VALIDATE_BOOLEAN);
-        $uri = $enclosure['EnclosureOutputUri'];
+        $uri = $enclosure['InstantiationFilePathRelative'];
         $import_closed_bilags = \Drupal::config(SettingsForm::$configName)->get('agman_meetings_import_closed_bilags');
         if (!$import_closed_bilags && $access === FALSE) {
           continue;
