@@ -41,10 +41,10 @@ class MeetingsDirectoryAgman extends MeetingsDirectory {
    * {@inheritdoc}
    */
   public function convertAgendaTypeToCanonical(array $source) {
-    if ( (int)$source['agenda_type'] === 0) {
+    if ((int) $source['agenda_type'] === 0) {
       return MeetingsDirectory::AGENDA_TYPE_KLADDE;
     }
-    else if ( (int)$source['agenda_type'] === 0) {
+    else if ((int) $source['agenda_type'] === 1) {
       return MeetingsDirectory::AGENDA_TYPE_DAGSORDEN;
     }
     else {
