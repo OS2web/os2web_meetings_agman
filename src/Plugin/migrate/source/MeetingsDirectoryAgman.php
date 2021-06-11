@@ -41,10 +41,10 @@ class MeetingsDirectoryAgman extends MeetingsDirectory {
    * {@inheritdoc}
    */
   public function convertAgendaTypeToCanonical(array $source) {
-    if ( (int)$source['agenda_type'] === 0) {
+    if ((int) $source['agenda_type'] === 0) {
       return MeetingsDirectory::AGENDA_TYPE_KLADDE;
     }
-    else if ( (int)$source['agenda_type'] === 0) {
+    else if ((int) $source['agenda_type'] === 1) {
       return MeetingsDirectory::AGENDA_TYPE_DAGSORDEN;
     }
     else {
@@ -125,7 +125,15 @@ class MeetingsDirectoryAgman extends MeetingsDirectory {
    */
   public function convertBulletPointsToCanonical(array $source) {
     $canonical_bullet_points = [];
+
     $source_bullet_points = array_pop($source['bullet_points']);
+
+    // Dealing with one BP meeting.
+    if (array_key_exists('Caption', $source_bullet_points['Item'])) {
+      $source_bullet_points['Item'] = [
+        0 => $source_bullet_points['Item']
+      ];
+    }
 
     foreach ($source_bullet_points['Item'] as $key => $bullet_point) {
       $id = $bullet_point['@attributes']['ID'];
@@ -151,6 +159,14 @@ class MeetingsDirectoryAgman extends MeetingsDirectory {
         if (array_key_exists('@attributes', $source_enclosures)) {
           $source_enclosures = [$source_enclosures];
         }
+
+        // If access = FALSE, force all enclosures to be closed.
+        if (!$access){
+          foreach ($source_enclosures as &$enclosure) {
+            $enclosure['IsProtected'] = TRUE;
+          }
+        }
+
         $canonical_enclosures = $this->convertEnclosuresToCanonical($source_enclosures);
       }
 
@@ -172,50 +188,74 @@ class MeetingsDirectoryAgman extends MeetingsDirectory {
    */
   public function convertAttachmentsToCanonical(array $source_attachments, $access = TRUE) {
     $canonical_attachments = [];
+    
     $closed_bpa_titles = \Drupal::config(SettingsForm::$configName)->get('agman_meetings_import_closed_bpa_titles');
     $closed_bpa_titles = !empty($closed_bpa_titles) ? explode(',', $closed_bpa_titles) : array();
     $closed_bpa_titles = array_map('trim', $closed_bpa_titles);
     $closed_bpa_titles = array_map('strtolower', $closed_bpa_titles);
 
-    foreach ($source_attachments['Fields']['ItemField'] as $attachmnet) {
-      if (!$access && !empty($closed_bpa_titles) && !in_array(strtolower($attachmnet['Caption']), $closed_bpa_titles)) {
-        continue;
-      }
-      // Using title as ID, as we don't have a real one.
-      if ($attachmnet['HasContent'] === 'True') {
-        $id = $attachmnet['@attributes']['ID'];
-        $title = $attachmnet['Caption'];
-        $body = (string) $attachmnet['Content'];
-        $canonical_attachments[] = [
-          'id' => $id,
-          'title' => $title,
-          'body' => $body,
-          'access' => $access,
-        ];
-      }
-    }
+    $empty_bpa_title = \Drupal::config(SettingsForm::$configName)->get('agman_meetings_import_empty_bpa_title');
 
+    if (isset($source_attachments['Fields']['ItemField'])) {
+      foreach ($source_attachments['Fields']['ItemField'] as $attachment) {
+        $attachment['Caption'] = is_array($attachment['Caption']) ? $empty_bpa_title : $attachment['Caption'];
 
-    if (!empty($source_attachments['ItemHistory'])) {
-      $source_attachments_history = $source_attachments['ItemHistory'];
-      $title = t('Beslutningshistorik');
-      $body = '';
-      foreach ($source_attachments_history as $history) {
-        if ($history['HasContent'] === 'True') {
-          $body .= t('@decision truffet af @comittee d. @date ', array(
-            '@decision' => (string) $history['Caption'],
-            '@comittee' => (string) $history['MeetingDetails']['CommitteeName'],
-            '@date'     => date('d-m-Y', strtotime((string) $history['MeetingDetails']['MeetingDueDate'])),
-          ));
-          $body .= '<br>' . strip_tags((string) $history['Content']) . '<br>';
+        if (!$access && !empty($closed_bpa_titles) && !in_array(strtolower($attachment['Caption']), $closed_bpa_titles)) {
+          continue;
+        }
+
+        // Using title as ID, as we don't have a real one.
+        if ($attachment['HasContent'] === 'True' && !empty($attachment['Content'])) {
+          $id = $attachment['@attributes']['ID'];
+          $title = $attachment['Caption'];
+          $body = (string) $attachment['Content'];
+
+          $canonical_attachments[] = [
+            'id' => $id,
+            'title' => $title,
+            'body' => $body,
+            'access' => $access,
+          ];
         }
       }
-      $canonical_attachments[] = [
-          'title' => $title,
-          'body' => $body,
-          'access' => TRUE,
-        ];
     }
+
+    if (!empty($source_attachments['ItemHistory'])) {
+      $decisionHistoryTitle = 'Beslutningshistorik';
+
+      // Allowing Beslutningshistorik only if the access is TRUE, or it's added
+      // to the whitelist.
+      if ($access || (!empty($closed_bpa_titles) && in_array(strtolower($decisionHistoryTitle), $closed_bpa_titles))) {
+        $source_attachments_history = $source_attachments['ItemHistory'];
+        $body = '';
+        $id = '';
+        foreach ($source_attachments_history as $history) {
+          if (isset($history['HasContent']) && $history['HasContent'] === 'True') {
+            // It's a composed field, use the first ID it can find.
+            if (empty($id)) {
+              $id = $history['@attributes']['ID'];
+            }
+
+            $body .= t('@decision truffet af @comittee d. @date ', array(
+              '@decision' => (string) $history['Caption'],
+              '@comittee' => (string) $history['MeetingDetails']['CommitteeName'],
+              '@date'     => date('d-m-Y', strtotime((string) $history['MeetingDetails']['MeetingDueDate'])),
+            ));
+            $body .= '<br>' . strip_tags((string) $history['Content']) . '<br>';
+          }
+        }
+
+        if (!empty($id) && !empty($body)) {
+          $canonical_attachments[] = [
+            'id' => $id,
+            'title' => $decisionHistoryTitle,
+            'body' => $body,
+            'access' => TRUE,
+          ];
+        }
+      }
+    }
+
     return $canonical_attachments;
   }
 
@@ -255,7 +295,7 @@ class MeetingsDirectoryAgman extends MeetingsDirectory {
         $id = $enclosure['@attributes']['ID'];
         $title = $enclosure['Name'];
         $access = !filter_var((string) $enclosure['IsProtected'], FILTER_VALIDATE_BOOLEAN);
-        $uri = $enclosure['EnclosureOutputUri'];
+        $uri = $enclosure['InstantiationFilePathRelative'];
         $import_closed_bilags = \Drupal::config(SettingsForm::$configName)->get('agman_meetings_import_closed_bilags');
         if (!$import_closed_bilags && $access === FALSE) {
           continue;
