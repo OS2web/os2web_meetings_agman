@@ -188,7 +188,7 @@ class MeetingsDirectoryAgman extends MeetingsDirectory {
    */
   public function convertAttachmentsToCanonical(array $source_attachments, $access = TRUE) {
     $canonical_attachments = [];
-    
+
     $closed_bpa_titles = \Drupal::config(SettingsForm::$configName)->get('agman_meetings_import_closed_bpa_titles');
     $closed_bpa_titles = !empty($closed_bpa_titles) ? explode(',', $closed_bpa_titles) : array();
     $closed_bpa_titles = array_map('trim', $closed_bpa_titles);
@@ -220,13 +220,17 @@ class MeetingsDirectoryAgman extends MeetingsDirectory {
       }
     }
 
-    if (!empty($source_attachments['ItemHistory'])) {
+    if (!empty($source_attachments['ItemHistory']['ItemField'])) {
       $decisionHistoryTitle = 'Beslutningshistorik';
 
       // Allowing Beslutningshistorik only if the access is TRUE, or it's added
       // to the whitelist.
       if ($access || (!empty($closed_bpa_titles) && in_array(strtolower($decisionHistoryTitle), $closed_bpa_titles))) {
-        $source_attachments_history = $source_attachments['ItemHistory'];
+        $source_attachments_history = $source_attachments['ItemHistory']['ItemField'];
+        // Handling single items.
+        if (array_key_exists('@attributes', $source_attachments_history)) {
+          $source_attachments_history = [$source_attachments_history];
+        }
         $body = '';
         $id = '';
         foreach ($source_attachments_history as $history) {
